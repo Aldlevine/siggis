@@ -172,7 +172,7 @@ function! siggis#get_all_sign_texts (...)
 
   let l:sign_texts = []
   for l:sign in l:signs
-    let l:sign_texts = add(l:sign_texts, l:sign.line.': '.getbufline(bufnr('%'), l:sign.line)[0])
+    let l:sign_texts = add(l:sign_texts, l:sign.line.': '.get(getbufline(bufnr('%'), l:sign.line), 0))
   endfor
   return l:sign_texts
 endfunction
@@ -217,10 +217,11 @@ let g:unite_source_menu_menus.siggis = {'description': 'Siggis'}
 " Siggis_find_project_root {{{
 
 function! s:default_find_project_root ()
-  let l:git = finddir('.git', '.;')
+  let l:git = fnamemodify(finddir('.git', '.;'), ':p')
+  let l:git = siggis#normalize_path(l:git)
   let l:path = ''
   if len(l:git)
-    let l:path = substitute(l:git, '(/|\\)*.git$', '', '')
+    let l:path = substitute(l:git, '/.git/*$', '', '')
   endif
   if !len(l:path) | let l:path = expand('%:p:h') | endif
   return l:path
@@ -258,7 +259,6 @@ function! siggis#get_siggis_save_path ()
     let l:rel_path .= '/'
   endif
   let l:save_path = l:project_root . '/.siggis/' . l:rel_path
-  echom l:save_path
   return l:save_path
 endfunction
 
