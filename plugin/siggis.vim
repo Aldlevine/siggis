@@ -216,32 +216,33 @@ let g:unite_source_menu_menus.siggis = {'description': 'Siggis'}
 " }}}
 " Siggis_find_project_root {{{
 
-function s:init_find_project_root ()
-  if !exists('Siggis_find_project_root')
-    function! Siggis_find_project_root ()
-      let l:git = finddir('.git', '.;')
-      let l:path = ''
-      if len(l:git)
-        let l:path = substitute(l:git, '/*.git$', '', '')
-      endif
-      if !len(l:path) | let l:path = expand('%:p:h') | endif
-      return l:path
-    endfunction
+function! s:default_find_project_root ()
+  let l:git = finddir('.git', '.;')
+  let l:path = ''
+  if len(l:git)
+    let l:path = substitute(l:git, '/*.git$', '', '')
   endif
+  if !len(l:path) | let l:path = expand('%:p:h') | endif
+  return l:path
 endfunction
 
-autocmd VimEnter * call s:init_find_project_root()
+function! s:find_project_root ()
+  if exists('Siggis_find_project_root')
+    return Siggis_find_project_root()
+  endif
+  return s:default_find_project_root()
+endfunction
 
 " }}}
 " siggis#get_siggis_save_path {{{
 
 function! siggis#get_siggis_save_path ()
   let l:file_path = expand('%:p:h')
-  let l:rel_path = substitute(l:file_path, Siggis_find_project_root(), '', '')
+  let l:rel_path = substitute(l:file_path, s:find_project_root(), '', '')
   if len(l:rel_path)
     let l:rel_path .= '/'
   endif
-  let l:save_path = Siggis_find_project_root() . '/.siggis/' . l:rel_path
+  let l:save_path = s:find_project_root() . '/.siggis/' . l:rel_path
   return l:save_path
 endfunction
 
