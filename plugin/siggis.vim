@@ -220,7 +220,7 @@ function! s:default_find_project_root ()
   let l:git = finddir('.git', '.;')
   let l:path = ''
   if len(l:git)
-    let l:path = substitute(l:git, '/*.git$', '', '')
+    let l:path = substitute(l:git, '(/|\\)*.git$', '', '')
   endif
   if !len(l:path) | let l:path = expand('%:p:h') | endif
   return l:path
@@ -234,15 +234,31 @@ function! s:find_project_root ()
 endfunction
 
 " }}}
+" siggis#normalize_path {{{
+
+function! siggis#normalize_path (path)
+  if has('win32')
+    let l:path = substitute(a:path, '^[A-Z]:', '', '')
+    let l:path = substitute(l:path, '\', '/', 'g')
+    return l:path
+  endif
+  return a:path
+endfunction
+
+" }}}
 " siggis#get_siggis_save_path {{{
 
 function! siggis#get_siggis_save_path ()
   let l:file_path = expand('%:p:h')
-  let l:rel_path = substitute(l:file_path, s:find_project_root(), '', '')
+  let l:file_path = siggis#normalize_path(l:file_path)
+  let l:project_root = siggis#normalize_path(s:find_project_root())
+  let l:rel_path = substitute(l:file_path, l:project_root, '', '')
+  let l:rel_path = siggis#normalize_path(l:rel_path)
   if len(l:rel_path)
     let l:rel_path .= '/'
   endif
-  let l:save_path = s:find_project_root() . '/.siggis/' . l:rel_path
+  let l:save_path = l:project_root . '/.siggis/' . l:rel_path
+  echom l:save_path
   return l:save_path
 endfunction
 
@@ -250,7 +266,7 @@ endfunction
 " siggis#write_save_file {{{
 
 function! siggis#write_save_file ()
-  let l:path = expand('%:p:h')
+  let l:path = siggis#normalize_path(expand('%:p:h'))
   if l:path !~ '/.siggis'
     let l:save_path = siggis#get_siggis_save_path()
     if !isdirectory(l:save_path)
@@ -266,6 +282,7 @@ endfunction
 
 function! siggis#load_save_file ()
   let l:path = expand('%:p:h')
+  let l:path = siggis#normalize_path(l:path)
   if l:path !~ '/.siggis'
     let l:save_path = siggis#get_siggis_save_path()
     call siggis#load_signs_from_file(l:save_path . expand('%:t'))
