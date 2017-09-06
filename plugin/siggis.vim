@@ -145,7 +145,7 @@ endfunction
 " siggis#get_all_signs {{{
 
 function! siggis#get_all_signs ()
-  redir => l:sign_str | silent execute 'sign place' | redir END
+  redir => l:sign_str | silent execute 'sign place buffer='.bufnr('%') | redir END
   let l:signs_raw = split(l:sign_str, '\n')
   let l:signs = []
   for l:line in l:signs_raw
